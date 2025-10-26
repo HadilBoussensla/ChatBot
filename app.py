@@ -1,9 +1,8 @@
-#bib a installer
 #!pip install gradio
 #!pip install SpeechRecognition
 #!apt install ffmpeg
 #!pip install pydub
-#!pip install sounddevice soundfile 
+#!pip install sounddevice soundfile
 #!apt-get install portaudio19-dev
 #!pip install sounddevice
 
@@ -13,32 +12,59 @@ import gradio as gr
 import speech_recognition as sr
 from pydub import AudioSegment
 import os
+
 # Auto-detect device (GPU/CPU)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Load Qwen 2.5 (small version)
+# Charger le modèle Qwen 2.5 (comme demandé)
 model_name = "Qwen/Qwen2.5-0.5B"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(
     model_name, torch_dtype=torch.float16 if device.type == "cuda" else torch.float32
 ).to(device)
 
-def generate_text(questions):
-    """Generates responses for multiple questions at once (text input)."""
-    questions = [q.strip() for q in questions if q.strip()]
-    if not questions:
-        return ["⚠️ Please enter a valid question."]
+def generate_text(question):
+    """Génère une réponse pour une question donnée en utilisant Qwen."""
+    if not question.strip():
+        return "⚠️ Veuillez entrer une question valide."
     
-    input_texts = [f"Question: {q}\nAnswer:" for q in questions]
-    inputs = tokenizer(input_texts, return_tensors="pt", padding=True, truncation=True).to(device)
-
-    with torch.no_grad():
-        outputs = model.generate(
-            **inputs, max_new_tokens=128, temperature=0.7, do_sample=True
-        )
-
-    responses = tokenizer.batch_decode(outputs, skip_special_tokens=True)
-    return [resp.split("Answer:")[-1].strip() for resp in responses]
+    try:
+        # Prompt instructif pour Qwen (modèle instructif)
+        prompt = f"You are a helpful assistant. Answer the following question clearly and concisely: {question}\nAnswer:"
+        inputs = tokenizer(prompt, return_tensors="pt").to(device)
+        
+        # Générer la réponse
+        with torch.no_grad():
+            outputs = model.generate(
+                **inputs,
+                max_new_tokens=128,  # Limiter pour des réponses courtes
+                temperature=0.7,
+                do_sample=True,
+                pad_token_id=tokenizer.eos_token_id
+            )
+        
+        # Décoder la réponse (enlever le prompt)
+        response = tokenizer.decode(outputs[0][inputs['input_ids'].shape[-1]:], skip_special_tokens=True).strip()
+        print(f"Question : {question}")
+        print(f"Réponse générée : '{response}'")  # Log pour déboguer
+        
+        # Si la réponse est vide ou trop courte, essayer de régénérer
+        if not response or len(response) < 5:
+            print("Réponse trop courte, régénération...")
+            outputs = model.generate(
+                **inputs,
+                max_new_tokens=200,
+                temperature=0.8,
+                do_sample=True,
+                pad_token_id=tokenizer.eos_token_id
+            )
+            response = tokenizer.decode(outputs[0][inputs['input_ids'].shape[-1]:], skip_special_tokens=True).strip()
+            print(f"Réponse régénérée : '{response}'")
+        
+        return response if response else "Désolé, je n'ai pas pu générer une réponse appropriée."
+    except Exception as e:
+        print(f"Erreur lors de la génération : {str(e)}")  # Log d'erreur
+        return f"⚠️ Erreur interne : {str(e)}"
 
 def convert_mp3_to_wav(audio_file):
     """Convert an MP3 file to WAV format using pydub."""
@@ -98,57 +124,84 @@ def start_recording():
         
         # Now transcribe the audio to text
         transcription = recognize_speech(audio_file)
-        return transcription, audio_file  # Return transcription and audio file for further use
+        return transcription  # Return only transcription for chat
 
-def chatbot_interface(question_type, text_input="", audio_input=None):
-    """Handles chatbot input from text or voice."""
-    if question_type == "Text":
-        if not text_input.strip():
-            return "⚠️ Veuillez entrer une question."
-        return generate_text([text_input])[0]
+def add_message_to_chat(history, message):
+    """Ajoute un message utilisateur au chat et génère une réponse IA."""
+    if not message.strip():
+        return history, ""
     
-    elif question_type == "Voice":
-        if audio_input is None:
-            return "⚠️ Veuillez enregistrer ou télécharger un fichier audio."
-        return recognize_speech(audio_input)
+    # Générer la réponse IA
+    response = generate_text(message)
+    
+    # Ajouter à l'historique : gr.Chatbot attend une liste de [user_msg, bot_msg]
+    history.append([message, response])
+    
+    return history, ""
 
-def cancel_input():
-    """Réinitialise l'interface, y compris la réponse du chatbot."""
-    return "", None, ""  # Clear text input, audio input, and output
+def add_voice_to_chat(history, transcription):
+    """Ajoute une transcription vocale au chat et génère une réponse IA."""
+    if not transcription.strip() or transcription.startswith("⚠️"):
+        return history, ""
+    
+    # Générer la réponse IA
+    response = generate_text(transcription)
+    
+    # Ajouter à l'historique : [transcription (avec icône), response]
+    history.append([f"🗣️ {transcription}", response])
+    
+    return history, ""
 
-# UI with Gradio
-with gr.Blocks() as app:
-    gr.Markdown("## 🤖 Chatbot IA (Texte et Voix) 🎙️💬")
+# UI with Gradio - Interface de chat simple comme ChatGPT
+with gr.Blocks(theme=gr.themes.Soft(), title="Chatbot IA") as app:
+    gr.Markdown("# 🤖 Chatbot IA (Texte et Voix) 🎙️💬")
+    gr.Markdown("Posez vos questions en texte ou en voix. L'IA répondra dans une conversation fluide !")
+    
+    chatbot = gr.Chatbot(label="Conversation", height=400)
     
     with gr.Row():
-        question_type = gr.Radio(["Text", "Voice"], label="Choisissez le type d'entrée", value="Text")
-
-    text_input = gr.Textbox(label="Entrez votre question (mode texte)")
-    audio_input = gr.Audio(type="filepath", label="Enregistrez ou téléchargez un fichier audio (MP3 ou WAV)")
-    output = gr.Textbox(label="🤖 Réponse du Chatbot")
-
+        msg = gr.Textbox(
+            label="Votre message",
+            placeholder="Tapez votre question ici...",
+            scale=7
+        )
+        submit_btn = gr.Button("Envoyer", variant="primary", scale=1)
+    
     with gr.Row():
-        submit_btn = gr.Button("Demander")
-        cancel_btn = gr.Button("Annuler")
-        record_btn = gr.Button("Record")
-
+        record_btn = gr.Button("🎤 Enregistrer Voix", variant="secondary")
+        clear_btn = gr.Button("🗑️ Effacer Chat", variant="stop")
+    
+ # Fonctionnalité texte : envoi sur bouton OU sur Entrée
     submit_btn.click(
-        fn=chatbot_interface,
-        inputs=[question_type, text_input, audio_input],
-        outputs=output
+        fn=add_message_to_chat,
+        inputs=[chatbot, msg],
+        outputs=[chatbot, msg]
+    )
+    msg.submit(  # Envoi automatique sur appui de la touche Entrée
+        fn=add_message_to_chat,
+        inputs=[chatbot, msg],
+        outputs=[chatbot, msg]
     )
 
-    cancel_btn.click(
-        fn=cancel_input,
-        inputs=None,
-        outputs=[text_input, audio_input, output]  # Clearing text input, audio input, and output
+    # Fonctionnalité texte
+    submit_btn.click(
+        fn=add_message_to_chat,
+        inputs=[chatbot, msg],
+        outputs=[chatbot, msg]
     )
-
+    
+    # Fonctionnalité voix
     record_btn.click(
-        fn=start_recording,
+        fn=lambda history: add_voice_to_chat(history, start_recording()),
+        inputs=chatbot,
+        outputs=[chatbot, msg]
+    )
+    
+    # Effacer le chat
+    clear_btn.click(
+        fn=lambda: ([], ""),
         inputs=None,
-        outputs=[text_input, audio_input]  # Set the recorded text as the text input and audio as input
+        outputs=[chatbot, msg]
     )
 
 app.launch()
-
