@@ -1,5 +1,4 @@
 🤖 AI Voice & Text Chatbot
-📘 Description
 
 This project is an AI-powered chatbot capable of understanding both text and voice input in French.
 It uses Qwen 2.5 (a transformer-based language model) to generate intelligent and context-aware responses.
