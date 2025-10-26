@@ -16,7 +16,7 @@ The chatbot allows users to:
 ⚖️ Compare text vs. voice interaction modes
 
 🚀 The application is deployed and accessible online at:
-👉 https://huggingface.co/spaces/HadilBoussensla/Chatbot_Qwen
+👉 https://huggingface.co/spaces/HadilBoussensla/ChatBot
 
 🚀 Features
 
