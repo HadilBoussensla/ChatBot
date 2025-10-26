@@ -65,7 +65,7 @@ FFmpeg → MP3/WAV handling
 
 Clone the repository:
 
-git clone https://github.com/HadilBoussensla/Chatbot_Qwen.git
+git clone https://github.com/HadilBoussensla/ChatBot.git
 cd Chatbot_Qwen
 
 
