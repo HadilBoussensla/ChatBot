@@ -1,53 +1,115 @@
-🧠 Description du projet
-🤖 Chatbot IA – Texte et Voix (basé sur Qwen 2.5)
+🤖 AI Voice & Text Chatbot
+📘 Description
 
-Ce projet est une application interactive de chatbot intelligent capable de comprendre et de répondre aux questions des utilisateurs en texte ou en voix.
-L’application utilise le modèle de langage Qwen2.5-0.5B
- de Hugging Face, combiné avec la reconnaissance vocale de Google Speech Recognition, pour offrir une expérience fluide et naturelle.
+This project is an AI-powered chatbot capable of understanding both text and voice input in French.
+It uses Qwen 2.5 (a transformer-based language model) to generate intelligent and context-aware responses.
+The app is built with Gradio for an interactive web interface and supports speech recognition through Google Speech Recognition API.
 
-⚙️ Fonctionnalités principales
+The chatbot allows users to:
 
-💬 Mode texte : l’utilisateur saisit une question et obtient une réponse générée par l’IA.
+Ask questions via text 💬 or voice 🎙️
 
-🎙️ Mode vocal : l’utilisateur enregistre ou télécharge un fichier audio (MP3/WAV), qui est automatiquement converti en texte, puis analysé par l’IA.
+Automatically transcribe voice input into text
 
-🔁 Conversion audio (MP3 → WAV) via la librairie pydub et ffmpeg.
+Generate coherent, AI-driven answers
 
-🧠 Modèle Qwen 2.5 pour la génération de texte contextuelle et naturelle.
+Compare text vs. voice interaction modes
 
-🌐 Interface web avec Gradio simple, réactive et facile à utiliser.
+🚀 Features
 
-🧩 Technologies utilisées
+✅ Dual interaction modes: Text & Voice
+✅ Speech-to-text using SpeechRecognition
+✅ AI responses powered by Qwen 2.5
+✅ Real-time web interface built with Gradio
+✅ Automatic MP3 → WAV audio conversion with pydub
+✅ GPU/CPU auto-detection using PyTorch
 
-Python 3.10+
+🛠️ Requirements
 
-Transformers (Hugging Face)
+All dependencies are listed in requirements.txt.
+If not created yet, you can install them manually:
 
-PyTorch
+pip install gradio
+pip install SpeechRecognition
+apt install ffmpeg
+pip install pydub
+pip install sounddevice soundfile
+apt-get install portaudio19-dev
+pip install sounddevice
 
-Gradio (interface web)
 
-SpeechRecognition
+Alternatively, run:
 
-pydub, ffmpeg, sounddevice
+pip install -r requirements.txt
 
-🚀 Déploiement
+🧩 Tech Stack
 
-Le projet peut être exécuté localement ou déployé en ligne via Render.
-Le fichier requirements.txt contient toutes les dépendances nécessaires pour une installation automatique.
+Python 3.8+
 
-📦 Structure du projet
-chatbot_qwen_voice/
-│
-├── app.py               # Code principal du chatbot
-├── requirements.txt      # Dépendances Python
-├── .gitignore            # Fichiers à ignorer par Git
-└── README.md             # Documentation du projet
+Gradio → Frontend interface
 
-💡 Exemple d’utilisation
+Transformers (Hugging Face) → Qwen 2.5 model
 
-Sélectionne le mode d’entrée (Text ou Voice).
+PyTorch → Model inference
 
-Pose ta question (ou enregistre ta voix).
+SpeechRecognition → Voice transcription
 
-Le chatbot analyse ta requête et génère une réponse instantanément.
+Pydub → Audio conversion
+
+FFmpeg → Required for MP3/WAV handling
+
+⚙️ How to Run
+
+Clone the repository:
+
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
+
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+
+Run the app:
+
+python app.py
+
+
+Access the interface:
+Open the local Gradio link (usually http://127.0.0.1:7860) in your browser.
+
+🧠 Model Used
+
+Model: Qwen/Qwen2.5-0.5B
+
+Type: Transformer-based Causal Language Model
+
+Capabilities: Natural language understanding and generation
+
+🗣️ Voice Interaction
+
+Supports MP3 and WAV audio formats
+
+Converts MP3 → WAV automatically
+
+Uses Google Speech Recognition API for transcription
+
+Can record directly from your microphone 🎤
+
+📁 Project Structure
+📦 ai-chatbot
+ ┣ 📜 app.py              # Main script (Gradio interface + chatbot logic)
+ ┣ 📜 requirements.txt     # Dependencies
+ ┣ 📜 .gitignore           # Ignored files (e.g., __pycache__, audio temp files)
+ ┣ 📜 README.md            # Project documentation
+
+🧾 License
+
+This project is licensed under the MIT License.
+You are free to use, modify, and distribute it with attribution.
+
+💡 Author
+
+Developed by Hadil Boussensla
+🚀 Passionate about AI, Machine Learning, and Interactive Systems.
