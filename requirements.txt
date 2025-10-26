@@ -1,8 +1,9 @@
-transformers
 torch
+transformers
 gradio
 SpeechRecognition
 pydub
 sounddevice
 soundfile
-ffmpeg-python
+gtts
+numpy
