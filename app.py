@@ -1,11 +1,11 @@
 #bib a installer
-!pip install gradio
-!pip install SpeechRecognition
-!apt install ffmpeg
-!pip install pydub
-!pip install sounddevice soundfile 
-!apt-get install portaudio19-dev
-!pip install sounddevice
+#!pip install gradio
+#!pip install SpeechRecognition
+#!apt install ffmpeg
+#!pip install pydub
+#!pip install sounddevice soundfile 
+#!apt-get install portaudio19-dev
+#!pip install sounddevice
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
@@ -151,3 +151,4 @@ with gr.Blocks() as app:
     )
 
 app.launch()
+
